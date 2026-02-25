@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Auto Random</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #e0f7fa;
+            --main: #00bcd4;
+            --accent: #ff4081;
+            --text: #37474f;
+            --card: #ffffff;
+        }
+
+        body {
+            font-family: 'Mali', cursive;
+            background-color: var(--bg);
+            /* ลายตารางสมุดเรียน */
+            background-image: 
+                linear-gradient(#b2ebf2 1px, transparent 1px),
+                linear-gradient(90deg, #b2ebf2 1px, transparent 1px);
+            background-size: 20px 20px;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--accent);
+            font-size: 3rem;
+            text-shadow: 3px 3px 0 #fff;
+            margin-bottom: 10px;
+            transform: rotate(-3deg);
+        }
+
+        /* กล่องใส่ชื่อ */
+        .card {
+            background: var(--card);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.1);
+            border: 4px solid #fff;
+            margin-bottom: 30px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 15px;
+            border-radius: 20px;
+            border: 2px solid #ddd;
+            font-family: 'Mali';
+            font-size: 1.1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--main); }
+
+        button.add-btn {
+            background: var(--main);
+            color: white;
+            border: none;
+            width: 60px;
+            border-radius: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #0097a7;
+            transition: 0.1s;
+        }
+        button.add-btn:active { transform: translateY(5px); box-shadow: none; }
+
+        /* รายชื่อเพื่อน */
+        .player-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .tag {
+            background: #fff9c4;
+            padding: 8px 15px;
+            border-radius: 15px;
+            border: 2px solid #fbc02d;
+            font-size: 1rem;
+            color: #f57f17;
+            animation: popIn 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        .tag span {
+            cursor: pointer;
+            color: #ff5252;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        /* ปุ่มเริ่มเกมใหญ่ๆ */
+        .big-btn {
+            background: linear-gradient(45deg, #ff4081, #ff80ab);
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            font-size: 2rem;
+            border-radius: 50px;
+            font-family: 'Mali';
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(255, 64, 129, 0.4);
+            transition: transform 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .big-btn:hover { transform: scale(1.05); }
+        .big-btn:active { transform: scale(0.95); }
+
+        /* Modal */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 40px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            border: 5px solid var(--main);
+            position: relative;
+            animation: slideUp 0.4s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .label { font-size: 1.2rem; color: #90a4ae; margin-bottom: 10px; }
+        .result-name { font-size: 2.5rem; color: var(--main); font-weight: 800; margin-bottom: 20px; }
+        .result-box { 
+            background: #e0f7fa; 
+            padding: 20px; 
+            border-radius: 20px; 
+            margin: 20px 0;
+            font-size: 1.6rem; 
+            color: #37474f; 
+            font-weight: 600;
+            line-height: 1.4;
+            border: 2px dashed var(--main);
+        }
+
+        .btn-row { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
+        .action-btn {
+            font-family: 'Mali'; font-size: 1.2rem; padding: 12px 25px;
+            border-radius: 15px; border: none; cursor: pointer; color: white;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2); transition: 0.1s;
+        }
+        .action-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        .btn-yes { background: #4caf50; }
+        .btn-no { background: #f44336; }
+        .btn-close { background: #607d8b; width: 100%; }
+
+        /* ส่วนบทลงโทษ */
+        .punish-mode .result-name { color: #f44336; }
+        .punish-mode .result-box { background: #ffebee; border-color: #f44336; }
+        .punish-mode .modal-content { border-color: #f44336; }
+
+        .hidden { display: none; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>✨ Auto Random 🎲</h1>
+        <p style="color: #78909c;">แค่ใส่ชื่อ...ที่เหลือระบบจัดให้!</p>
+
+        <div class="card">
+            <div class="input-area">
+                <input type="text" id="pInput" placeholder="ใส่ชื่อเพื่อนทีละคน..." onkeypress="handleEnter(event)">
+                <button class="add-btn" onclick="addPlayer()">+</button>
+            </div>
+            
+            <div class="player-list" id="pList">
+                <span style="color:#b0bec5;">(ยังไม่มีรายชื่อ)</span>
+            </div>
+        </div>
+
+        <button class="big-btn" onclick="startRandom()">🚀 สุ่มเลย!</button>
+        
+        <div style="margin-top: 20px;">
+             <label><input type="checkbox" id="noRepeat" checked> ไม่เอาคำถามซ้ำ</label>
+        </div>
+    </div>
+
+    <div class="modal" id="gameModal">
+        <div class="modal-content" id="modalBody">
+            
+            <div id="phaseQ">
+                <div class="label">ผู้โชคดีคือ...</div>
+                <div class="result-name" id="resName">...</div>
+                
+                <div class="label">คำถามของคุณ</div>
+                <div class="result-box" id="resQ">...</div>
+                
+                <div class="btn-row">
+                    <button class="action-btn btn-yes" onclick="finishTurn()">✅ ตอบได้ (รอด)</button>
+                    <button class="action-btn btn-no" onclick="goPunish()">❌ ไม่ตอบ (ทำโทษ)</button>
+                </div>
+            </div>
+
+            <div id="phaseP" class="hidden">
+                <div class="label">อุ๊ย...ไม่ตอบหรอ?</div>
+                <div class="result-name">😈 โดนทำโทษ!!</div>
+                
+                <div class="result-box" id="resP">...</div>
+                
+                <div class="btn-row">
+                    <button class="action-btn btn-close" onclick="closeModal()">รับทราบ (ปิด)</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+    // --- คลังข้อมูลอัตโนมัติ (50+ ข้อ) ---
+    const questionPool = [
+        "แอบชอบใครในโรงเรียน? (บอกชื่อย่อ)",
+        "วิชาที่เกลียดที่สุดคืออะไร?",
+        "เคยแอบหลับในคาบครูคนไหน?",
+        "เรื่องน่าอายที่สุดในชีวิตคือ?",
+        "ถ้าสลับร่างกับเพื่อนในวงได้ 1 คน จะเลือกใคร?",
+        "ความลับที่พ่อแม่ไม่รู้คืออะไร?",
+        "ใครในวงที่หน้าตาดีที่สุด?",
+        "เคยโกงข้อสอบไหม?",
+        "ถ้าโลกแตกพรุ่งนี้ จะบอกรักใคร?",
+        "สเปคแฟนที่ชอบเป็นแบบไหน?",
+        "เคยขโมยตังค์พ่อแม่ไหม?",
+        "ฉายาที่เพื่อนตั้งให้แล้วเกลียดที่สุด?",
+        "ถ้ามีเงิน 10 ล้าน จะทำอะไรอย่างแรก?",
+        "ใครในวงที่ดูเจ้าชู้ที่สุด?",
+        "เคยร้องไห้หนักสุดเรื่องอะไร?",
+        "ถ้าต้องติดเกาะกับคนในวง 1 คน เลือกใคร?",
+        "สิ่งของที่หวงที่สุดคืออะไร?",
+        "เคยแอบนินทาใครในวงไหม? (สารภาพมา)",
+        "ถ้าศัลยกรรมได้ 1 จุด จะทำตรงไหน?",
+        "เหตุการณ์ที่ทำให้โกรธจัดที่สุด?",
+        "ใครในวงที่น่ารำคาญที่สุด (หยอกๆ)",
+        "เคยแอบชอบแฟนเพื่อนไหม?",
+        "รูปหลุดที่ตลกที่สุดอยู่ในเครื่องใคร?",
+        "สัตว์ที่กลัวที่สุดคืออะไร?",
+        "ถ้าขอพรได้ 1 ข้อ จะขออะไร?",
+        "เคยโดดเรียนไปไหน?",
+        "ใครในวงที่ดู 'รวย' ที่สุด?",
+        "ชุดที่ใส่แล้วมั่นใจที่สุดคือชุดไหน?",
+        "วีรกรรมตอนเด็กที่แสบที่สุด?",
+        "เคยจีบใครแล้วนกไหม?",
+        "ถ้าเป็นดาราได้ อยากเป็นใคร?",
+        "เพลงที่ฟังบ่อยที่สุดช่วงนี้?",
+        "ใครในวงที่ 'สกปรก' ที่สุด?",
+        "เวลานอนกอดตุ๊กตาไหม?",
+        "กลัวผีไหม? เคยเจอไหม?",
+        "ถ้าต้องกินอาหารเมนูเดียวตลอดชีวิต เลือกอะไร?",
+        "ใครในวงที่ 'พูดมาก' ที่สุด?",
+        "คำพูดติดปากช่วงนี้คือ?",
+        "เคยทำของพังแล้วไม่บอกใครไหม?",
+        "ถ้ามีประตูไปที่ไหนก็ได้ อยากไปที่ไหน?",
+        "สิ่งที่ภูมิใจที่สุดในชีวิต?",
+        "ใครในวงที่ 'ขี้งก' ที่สุด?",
+        "เคยแกล้งเพื่อนแรงสุดคือทำอะไร?",
+        "สีชุดชั้นในที่ชอบใส่?",
+        "ถ้าเป็นเพศตรงข้ามได้ 1 วัน จะทำอะไร?",
+        "อยากมีพลังวิเศษอะไร?",
+        "ใครในวงที่ 'เรียนเก่ง' จนน่าหมั่นไส้?",
+        "เคยบล็อกเพื่อนในเฟซ/ไลน์ไหม?",
+        "สถานที่เดทในฝันคือที่ไหน?",
+        "คะแนนสอบที่น้อยที่สุดในชีวิต?"
+    ];
+
+    const punishmentPool = [
+        "เต้นไก่ย่าง 1 รอบ",
+        "ทำท่าหัวใจค้างไว้ 10 วิ",
+        "ร้องเพลงชาติท่อนแรก",
+        "พูดลงท้ายด้วย 'เมี๊ยว' 3 รอบ",
+        "วาดรูปแมวบนหน้าผาก",
+        "กระโดดตบ 10 ที",
+        "ทักแชทบอกฝันดีคนล่าสุด",
+        "สารภาพรักกับกำแพง",
+        "ยืนกระต่ายขาเดียว 1 นาที",
+        "เต้นเพลง TikTok 1 ท่อน",
+        "โทรหาคอลเซ็นเตอร์ร้องเพลงให้ฟัง",
+        "ดมถุงเท้าเพื่อนข้างขวา",
+        "หัวเราะแบบตัวร้ายละครไทย",
+        "โพสต์ว่า 'ฉันสวย/หล่อมาก' ในสตอรี่",
+        "ทำหน้าตลกให้เพื่อนถ่ายรูป",
+        "คลานเข่า 1 รอบวง",
+        "ชมเพื่อนข้างขวา 1 นาที",
+        "เล่าเรื่องผี 1 เรื่อง",
+        "ให้เพื่อนแต่งหน้าให้ (เบาๆ)",
+        "กินน้ำ 1 แก้วรวดเดียว",
+        "จ้องตาเพื่อนข้างซ้าย ห้ามกระพริบ 10 วิ",
+        "ทำท่าลิงเกาหัว",
+        "หมุนตัว 5 รอบแล้วเดินตรงๆ",
+        "ให้เพื่อนดีดมะกอก 1 ที",
+        "นอนกลิ้งบนพื้น",
+        "ทำท่าสะพานโค้ง",
+        "ท่องสูตรคูณแม่ 9 ถอยหลัง",
+        "ทำท่าเลียนแบบครูฝ่ายปกครอง",
+        "นั่งนิ่งห้ามขยับ 30 วิ",
+        "พูดชื่อเพื่อนให้ครบทุกคนใน 10 วิ"
+    ];
+
+    let players = [];
+    let currentQuestions = [...questionPool]; // Copy มาเพื่อใช้ตัดออกเมื่อถามแล้ว
+
+    // --- ฟังก์ชันจัดการชื่อเพื่อน ---
+    function addPlayer() {
+        const input = document.getElementById('pInput');
+        const val = input.value.trim();
+        if(val) {
+            players.push(val);
+            renderList();
+            input.value = '';
+            input.focus();
+        }
+    }
+
+    function removePlayer(index) {
+        players.splice(index, 1);
+        renderList();
+    }
+
+    function renderList() {
+        const list = document.getElementById('pList');
+        if(players.length === 0) {
+            list.innerHTML = '<span style="color:#b0bec5;">(ยังไม่มีรายชื่อ)</span>';
+            return;
+        }
+        list.innerHTML = players.map((p, i) => `
+            <div class="tag">${p} <span onclick="removePlayer(${i})">&times;</span></div>
+        `).join('');
+    }
+
+    function handleEnter(e) {
+        if(e.key === 'Enter') addPlayer();
+    }
+
+    // --- ระบบเกม ---
+    function startRandom() {
+        if(players.length === 0) return alert('⚠️ ใส่ชื่อเพื่อนก่อนนะจ๊ะ!');
+
+        // รีเซ็ตคำถามถ้าหมด
+        if(currentQuestions.length === 0) {
+            alert('คำถามหมดคลังแล้ว! ระบบจะรีเซ็ตคำถามใหม่นะ');
+            currentQuestions = [...questionPool];
+        }
+
+        const modal = document.getElementById('gameModal');
+        const modalBody = document.getElementById('modalBody');
+        const phaseQ = document.getElementById('phaseQ');
+        const phaseP = document.getElementById('phaseP');
+
+        // Reset UI
+        modal.style.display = 'flex';
+        modalBody.classList.remove('punish-mode');
+        phaseQ.classList.remove('hidden');
+        phaseP.classList.add('hidden');
+
+        // Animation สุ่มชื่อ
+        const nameEl = document.getElementById('resName');
+        const qEl = document.getElementById('resQ');
+        
+        let count = 0;
+        const timer = setInterval(() => {
+            nameEl.innerText = players[Math.floor(Math.random() * players.length)];
+            qEl.innerText = currentQuestions[Math.floor(Math.random() * currentQuestions.length)];
+            count++;
+            
+            if(count > 15) {
+                clearInterval(timer);
+                finalizeRandom();
+            }
+        }, 60);
+    }
+
+    function finalizeRandom() {
+        // 1. สุ่มคน
+        const finalName = players[Math.floor(Math.random() * players.length)];
+        document.getElementById('resName').innerText = finalName;
+
+        // 2. สุ่มคำถาม
+        const qIndex = Math.floor(Math.random() * currentQuestions.length);
+        const finalQ = currentQuestions[qIndex];
+        document.getElementById('resQ').innerText = finalQ;
+
+        // 3. ถ้าติ๊ก "ไม่เอาคำถามซ้ำ" ให้ลบออกจากกอง
+        if(document.getElementById('noRepeat').checked) {
+            currentQuestions.splice(qIndex, 1);
+        }
+    }
+
+    function finishTurn() {
+        // ตอบได้ ปิดเลย
+        document.getElementById('gameModal').style.display = 'none';
+    }
+
+    function goPunish() {
+        // เปลี่ยนหน้าเป็นบทลงโทษ
+        document.getElementById('phaseQ').classList.add('hidden');
+        document.getElementById('phaseP').classList.remove('hidden');
+        
+        // เปลี่ยนสีธีม Modal
+        document.getElementById('modalBody').classList.add('punish-mode');
+
+        // สุ่มบทลงโทษ
+        const p = punishmentPool[Math.floor(Math.random() * punishmentPool.length)];
+        document.getElementById('resP').innerText = p;
+    }
+
+    function closeModal() {
+        document.getElementById('gameModal').style.display = 'none';
+    }
+
+    // คลิกพื้นหลังเพื่อปิด
+    document.getElementById('gameModal').addEventListener('click', (e) => {
+        if(e.target.id === 'gameModal') closeModal();
+    });
+
+</script>
+
+</body>
+</html>
